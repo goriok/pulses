@@ -12,4 +12,4 @@ COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} devbox.lock devbox.lock
 
 RUN devbox run -- echo "Installed Packages."
 
-CMD ["devbox", "shell"]
+CMD ["/bin/sh"]

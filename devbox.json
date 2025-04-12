@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.14.0/.schema/devbox.schema.json",
-  "packages": ["go@1.24", "gomarkdoc@1.1.0", "just@latest"],
+  "packages": ["go@1.24", "gomarkdoc@1.1.0", "just@latest", "git@latest"],
   "shell": {
     "init_hook": ["echo 'Welcome to devbox!' > /dev/null"],
     "scripts": {
