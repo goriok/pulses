@@ -7,7 +7,7 @@ import (
 )
 
 type Consumer interface {
-	Start(subject string, handler func(subject string, message []byte))
+	Connect(subject string, handler func(subject string, message []byte))
 }
 
 type Options struct {
@@ -39,7 +39,7 @@ func Start(opts *Options) {
 		}
 	}()
 
-	opts.Consumer.Start(opts.Subject, func(subject string, message []byte) {
+	opts.Consumer.Connect(opts.Subject, func(subject string, message []byte) {
 		select {
 		case messageChan <- message:
 		default:

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -77,9 +78,16 @@ func (b *Broker) handleConnection(conn net.Conn) {
 
 func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 	data := fmt.Sprintf(".data/%s", subject)
+
+	dir := filepath.Dir(data)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		logrus.Fatalf("Broker: failed to create subject: %v\n", err)
+		return
+	}
+
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		logrus.Errorf("Broker: invalid subject: %v\n", err)
+		logrus.Fatalf("Broker: invalid subject: %v\n", err)
 		return
 	}
 	defer file.Close()
@@ -107,9 +115,15 @@ func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 	b.mu.Unlock()
 
 	data := fmt.Sprintf(".data/%s", subject)
+
+	dir := filepath.Dir(data)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		logrus.Fatalf("Broker: failed to create subject: %v\n", err)
+		return
+	}
 	file, err := os.Open(data)
 	if err != nil {
-		logrus.Errorf("Broker: invalid subject: %v\n", err)
+		logrus.Fatalf("Broker: invalid subject: %v\n", err)
 		return
 	}
 	defer file.Close()

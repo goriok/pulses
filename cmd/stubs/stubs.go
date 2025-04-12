@@ -15,6 +15,7 @@ import (
 func BrokerStart(port int) {
 	broker := fsbroker.NewBroker(port)
 	broker.Start()
+	logrus.Infof("Broker started on port %d", port)
 }
 
 func PulsesGenerator(brokerHost string, subject string) error {

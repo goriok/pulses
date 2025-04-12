@@ -18,7 +18,7 @@ func NewConsumer(broker string) *Consumer {
 	}
 }
 
-func (c *Consumer) Start(subject string, handler func(subject string, msg []byte)) {
+func (c *Consumer) Connect(subject string, handler func(subject string, msg []byte)) {
 	conn, err := net.Dial("tcp", c.broker)
 	if err != nil {
 		logrus.Errorf("CONSUMER: Error connecting to broker: %v\n", err)
