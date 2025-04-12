@@ -27,6 +27,7 @@ func (c *Consumer) Connect(subject string, handler func(subject string, msg []by
 	defer conn.Close()
 
 	fmt.Fprintf(conn, "consumer_%s\n", subject)
+	logrus.Infof("CONSUMER: Connected to broker %s as consumer for subject %s", c.broker, subject)
 
 	reader := bufio.NewReader(conn)
 	for {

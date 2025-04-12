@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	dataDir = ".data"
 )
 
 type Broker struct {
@@ -77,13 +80,8 @@ func (b *Broker) handleConnection(conn net.Conn) {
 }
 
 func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
-	data := fmt.Sprintf(".data/%s", subject)
-
-	dir := filepath.Dir(data)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		logrus.Fatalf("Broker: failed to create subject: %v\n", err)
-		return
-	}
+	data := fmt.Sprintf("%s/%s", dataDir, subject)
+	logrus.Info(data)
 
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -104,6 +102,7 @@ func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 			logrus.Errorf("Broker: Error writing message: %v\n", err)
 			return
 		}
+		logrus.Infof("Broker: Message written to file: %s\n", message)
 
 		b.newMessage <- message
 	}
@@ -114,20 +113,15 @@ func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 	b.consumers = append(b.consumers, conn)
 	b.mu.Unlock()
 
-	data := fmt.Sprintf(".data/%s", subject)
+	data := fmt.Sprintf("%s/%s", dataDir, subject)
+	logrus.Info(data)
 
-	dir := filepath.Dir(data)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		logrus.Fatalf("Broker: failed to create subject: %v\n", err)
-		return
-	}
-	file, err := os.Open(data)
+	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0777)
 	if err != nil {
 		logrus.Fatalf("Broker: invalid subject: %v\n", err)
-		return
 	}
-	defer file.Close()
 
+	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		_, err := fmt.Fprintf(conn, "%s\n", scanner.Text())

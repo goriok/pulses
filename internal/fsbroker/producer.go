@@ -3,6 +3,8 @@ package fsbroker
 import (
 	"fmt"
 	"net"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Producer struct {
@@ -22,7 +24,10 @@ func (p *Producer) Connect(subject string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(conn, "producer_%s\n", subject)
+
+	p.conn = &conn
+	fmt.Fprintf(*(p.conn), "producer_%s\n", subject)
+	logrus.Infof("Connected to broker %s as producer for subject %s", p.broker, subject)
 	return nil
 }
 
@@ -38,5 +43,6 @@ func (p *Producer) Publish(subject string, msg []byte) error {
 	}
 
 	fmt.Fprintf(*p.conn, "%s\n", msg)
+	logrus.Infof("Published message to subject %s: %s", subject, msg)
 	return nil
 }
