@@ -66,7 +66,7 @@ func (b *Broker) handleConnection(conn net.Conn) {
 
 	if data[0] == "producer" {
 		logrus.Infof("Broker: Producer connected on subject %s\n", data[1])
-		b.handleProducer(conn, reader, data[1])
+		b.handleProducer(reader, data[1])
 	} else if data[0] == "consumer" {
 		logrus.Infof("Broker: Consumer connected on subject %s\n", data[1])
 		b.handleConsumer(conn, data[1])
@@ -75,7 +75,7 @@ func (b *Broker) handleConnection(conn net.Conn) {
 	}
 }
 
-func (b *Broker) handleProducer(conn net.Conn, reader *bufio.Reader, subject string) {
+func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 	data := fmt.Sprintf(".data/%s", subject)
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

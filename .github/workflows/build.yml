@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +23,9 @@ jobs:
 
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.11.0
+
+      - name: test
+        run: devbox run just ci-test
 
       - name: build
         run: devbox run just ci-build

@@ -14,11 +14,12 @@ const (
 	pulsesSubject = "cloud.sku.pulses"
 )
 
+var brokerHost = fmt.Sprintf("localhost:%d", brokerPort)
+
 func main() {
 	go stubs.BrokerStart(brokerPort)
 	logrus.Infof("stub broker started, port: %d", brokerPort)
 
-	brokerHost := fmt.Sprintf("localhost:%d", brokerPort)
 	go stubs.PulsesGenerator(brokerHost, pulsesSubject)
 	logrus.Infof("stub pulses generator started, host: localhost, port: %d", brokerPort)
 

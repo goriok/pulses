@@ -5,6 +5,11 @@ ci-build:
   set -e
   go build -o {{dist}}/pulses
 
+ci-test:
+  #! /bin/bash
+  set -e
+  go test ./... -v
+
 build:
   #! /bin/bash
   set -e
