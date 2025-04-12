@@ -18,11 +18,11 @@ func NewConsumer(broker string) *Consumer {
 	}
 }
 
-func (c *Consumer) Connect(subject string, handler func(subject string, msg []byte)) {
+func (c *Consumer) Connect(subject string, handler func(subject string, msg []byte)) error {
 	conn, err := net.Dial("tcp", c.broker)
 	if err != nil {
 		logrus.Errorf("CONSUMER: Error connecting to broker: %v\n", err)
-		return
+		return err
 	}
 	defer conn.Close()
 
@@ -34,7 +34,7 @@ func (c *Consumer) Connect(subject string, handler func(subject string, msg []by
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			logrus.Errorf("CONSUMER: Error reading message: %v\n", err)
-			return
+			return err
 		}
 		handler(subject, []byte(message))
 		logrus.Debugf("CONSUMER: Received message on subject %s: %s", subject, message)

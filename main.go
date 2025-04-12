@@ -17,7 +17,9 @@ const (
 var brokerHost = fmt.Sprintf("localhost:%d", brokerPort)
 
 func main() {
-	go stubs.BrokerStart(brokerPort)
+	broker := fsbroker.NewBroker(brokerPort)
+	go broker.Start()
+	defer broker.Stop()
 	logrus.Infof("stub broker started, port: %d", brokerPort)
 
 	go stubs.PulsesGenerator(brokerHost, pulsesSubject)
@@ -25,8 +27,8 @@ func main() {
 
 	consumer := fsbroker.NewConsumer(brokerHost)
 	go ingester.Start(&ingester.Options{
-		Subject:  pulsesSubject,
-		Consumer: consumer,
+		PulsesSubject: pulsesSubject,
+		Consumer:      consumer,
 	})
 
 	select {}

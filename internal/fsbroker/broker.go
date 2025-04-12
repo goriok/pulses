@@ -20,6 +20,7 @@ type Broker struct {
 	newMessage chan string
 	mu         sync.Mutex
 	host       string
+	listener   *net.Listener
 }
 
 func NewBroker(port int) *Broker {
@@ -32,12 +33,18 @@ func NewBroker(port int) *Broker {
 	}
 }
 
+func (b *Broker) On() bool {
+	return b.listener != nil
+}
+
 func (b *Broker) Start() error {
 	listener, err := net.Listen("tcp", b.host)
 	if err != nil {
 		logrus.Errorf("Broker: Error starting server => %v\n", err)
 		return err
 	}
+
+	b.listener = &listener
 	defer listener.Close()
 
 	logrus.Infof("Broker: Listening on %s\n", b.host)
@@ -52,6 +59,12 @@ func (b *Broker) Start() error {
 		}
 
 		go b.handleConnection(conn)
+	}
+}
+
+func (b *Broker) Stop() {
+	if b.listener != nil {
+		(*b.listener).Close()
 	}
 }
 
