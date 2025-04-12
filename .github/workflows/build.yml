@@ -17,7 +17,7 @@ jobs:
       - name: cache-nix
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('devbox-lock.json') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('devbox-lock.json') }}
           path: |
             /nix
 
