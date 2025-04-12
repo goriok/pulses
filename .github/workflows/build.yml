@@ -36,6 +36,5 @@ jobs:
         run: |
           git config --global user.name 'goriok'
           git config --global user.email 'igorsoaresalves@gmail.com'
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git commit -am "chore: updates README.md"
           git push
