@@ -50,6 +50,7 @@ import "goriok/pulses"
 ## Index
 
 - [Constants](<#constants>)
+- [Variables](<#variables>)
 - [func main\(\)](<#main>)
 
 
@@ -64,8 +65,16 @@ const (
 )
 ```
 
+## Variables
+
+<a name="brokerHost"></a>
+
+```go
+var brokerHost = fmt.Sprintf("localhost:%d", brokerPort)
+```
+
 <a name="main"></a>
-## func [main](<https://github.com/goriok/pulses/blob/main/main.go#L17>)
+## func [main](<https://github.com/goriok/pulses/blob/main/main.go#L19>)
 
 ```go
 func main()
