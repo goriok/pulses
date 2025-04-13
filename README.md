@@ -52,16 +52,17 @@ import "goriok/pulses"
 - [Constants](<#constants>)
 - [Variables](<#variables>)
 - [func main\(\)](<#main>)
+- [func stubsSetup\(\)](<#stubsSetup>)
 
 
 ## Constants
 
-<a name="brokerPort"></a>
+<a name="BROKER_PORT"></a>
 
 ```go
 const (
-    brokerPort    = 9000
-    pulsesSubject = "cloud.sku.pulses"
+    BROKER_PORT    = 9000
+    PULSES_SUBJECT = "cloud.sku.pulses"
 )
 ```
 
@@ -70,14 +71,29 @@ const (
 <a name="brokerHost"></a>
 
 ```go
-var brokerHost = fmt.Sprintf("localhost:%d", brokerPort)
+var (
+    brokerHost = fmt.Sprintf("localhost:%d", BROKER_PORT)
+    stub       = flag.Bool("stub", false, "Enable or disable stub (default: false)")
+    tenants    = flag.Int("stub-tenants", 10, "Number of tenants (default: 10)")
+    skus       = flag.Int("stub-skus", 50, "Number of sku (default: 50)")
+    cleanStubs = flag.Bool("stub-clean", false, "Clean all subjects")
+)
 ```
 
 <a name="main"></a>
-## func [main](<https://github.com/goriok/pulses/blob/main/main.go#L19>)
+## func [main](<https://github.com/goriok/pulses/blob/main/main.go#L27>)
 
 ```go
 func main()
+```
+
+
+
+<a name="stubsSetup"></a>
+## func [stubsSetup](<https://github.com/goriok/pulses/blob/main/main.go#L57>)
+
+```go
+func stubsSetup()
 ```
 
 
