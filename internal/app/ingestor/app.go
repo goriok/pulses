@@ -4,9 +4,22 @@ import (
 	"fmt"
 	"goriok/pulses/internal/broker/fsbroker"
 	"goriok/pulses/internal/stream"
-
-	"github.com/sirupsen/logrus"
 )
+
+type Pipeline interface {
+	Start(opts *stream.Options) error
+}
+
+type SourceConnector interface {
+	Read(topic string, handler func(topic string, message []byte)) error
+	Close()
+}
+
+type SinkConnector interface {
+	Connect(topic string) error
+	Write(topic string, message []byte) error
+	Close()
+}
 
 type Config struct {
 	BrokerPort  int
@@ -19,9 +32,9 @@ type Config struct {
 
 type App struct {
 	cfg             Config
-	broker          *fsbroker.Broker
-	sinkConnector   *fsbroker.SinkConnector
-	sourceConnector *fsbroker.SourceConnector
+	sinkConnector   SinkConnector
+	sourceConnector SourceConnector
+	pipeline        Pipeline
 }
 
 func New(cfg Config) *App {
@@ -29,17 +42,14 @@ func New(cfg Config) *App {
 
 	return &App{
 		cfg:             cfg,
-		broker:          fsbroker.NewBroker(cfg.BrokerPort),
 		sinkConnector:   fsbroker.NewSinkConnector(host),
 		sourceConnector: fsbroker.NewSourceConnector(host),
+		pipeline:        stream.NewPipeline(),
 	}
 }
 
 func (a *App) Start() error {
-	go a.broker.Start()
-	logrus.Infof("broker started on port %d", a.cfg.BrokerPort)
-
-	err := stream.StartPipeline(&stream.Options{
+	err := a.pipeline.Start(&stream.Options{
 		SourceTopic:     a.cfg.SourceTopic,
 		SourceConnector: a.sourceConnector,
 		SinkConnector:   a.sinkConnector,
@@ -54,5 +64,4 @@ func (a *App) Start() error {
 func (a *App) Stop() {
 	a.sourceConnector.Close()
 	a.sinkConnector.Close()
-	a.broker.Stop()
 }
