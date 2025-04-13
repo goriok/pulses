@@ -3,7 +3,7 @@ dist := "dist/"
 ci-build:
   #! /bin/bash
   set -e
-  go build -o {{dist}}/pulses
+  go build -o dist/ingestor ./cmd/ingestor
 
 ci-test:
   #! /bin/bash
@@ -13,10 +13,10 @@ ci-test:
 build:
   #! /bin/bash
   set -e
-  devbox run go build -o {{dist}}/pulses
+  devbox run go build -o dist/ingestor ./cmd/ingestor
 
 docs:
   #! /bin/bash
   set -e
-  devbox run gomarkdoc -u -o README.md -e .
+  devbox run gomarkdoc -u -o README.md -e ./cmd/ingestor
   echo "README.md has been updated"

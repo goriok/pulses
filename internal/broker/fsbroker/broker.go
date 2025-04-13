@@ -16,9 +16,9 @@ const (
 )
 
 type Broker struct {
-	consumers  map[string][]*net.Conn
-	newMessage chan struct {
-		Subject string
+	sourceConnectors map[string][]*net.Conn
+	newMessage       chan struct {
+		Topic   string
 		Message string
 	}
 	mu       sync.Mutex
@@ -30,9 +30,9 @@ func NewBroker(port int) *Broker {
 	host := fmt.Sprintf("localhost:%d", port)
 
 	return &Broker{
-		consumers: make(map[string][]*net.Conn),
+		sourceConnectors: make(map[string][]*net.Conn),
 		newMessage: make(chan struct {
-			Subject string
+			Topic   string
 			Message string
 		}),
 		host: host,
@@ -86,24 +86,27 @@ func (b *Broker) handleConnection(conn *net.Conn) {
 	greeting = greeting[:len(greeting)-1]
 
 	data := strings.Split(greeting, "_")
-	if data[0] == "producer" {
-		logrus.Debugf("broker: Producer connected on subject %s", data[1])
-		b.handleProducer(reader, data[1])
-	} else if data[0] == "consumer" {
-		logrus.Debugf("broker: Consumer connected on subject %s", data[1])
-		b.handleConsumer(conn, data[1])
+	if data[0] == "sink-connector" {
+		logrus.Debugf("broker: sink-connector connected on topic %s", data[1])
+		b.handleSinkConnector(reader, data[1])
+	} else if data[0] == "source-connector" {
+		logrus.Debugf("broker: source-connector connected on topic %s", data[1])
+		b.handleSourceConnector(conn, data[1])
 	} else {
 		logrus.Errorf("broker: Unknown client type: %s", data[0])
 	}
 }
 
-func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
-	data := fmt.Sprintf("%s/%s", DATA_DIR, subject)
-	logrus.Info(data)
+func (b *Broker) handleSinkConnector(reader *bufio.Reader, topic string) {
+	data := fmt.Sprintf("%s/%s", DATA_DIR, topic)
+	if err := ensureDataDirExists(); err != nil {
+		logrus.Fatalf("broker: failed to ensure .data exists: %v", err)
+		return
+	}
 
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		logrus.Fatalf("broker: invalid subject: %v", err)
+		logrus.Fatalf("broker: invalid topic: %v", err)
 		return
 	}
 	defer file.Close()
@@ -121,23 +124,28 @@ func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 			return
 		}
 
-		logrus.Infof("broker: [APPEND] %s <= %s", subject, message)
+		logrus.Infof("broker: [APPEND] %s <= %s", topic, message)
 		b.newMessage <- struct {
-			Subject string
+			Topic   string
 			Message string
-		}{Subject: subject, Message: message}
+		}{Topic: topic, Message: message}
 	}
 }
 
-func (b *Broker) handleConsumer(conn *net.Conn, subject string) {
+func (b *Broker) handleSourceConnector(conn *net.Conn, topic string) {
 	b.mu.Lock()
-	b.consumers[subject] = append(b.consumers[subject], conn)
+	b.sourceConnectors[topic] = append(b.sourceConnectors[topic], conn)
 	b.mu.Unlock()
 
-	data := fmt.Sprintf("%s/%s", DATA_DIR, subject)
+	if err := ensureDataDirExists(); err != nil {
+		logrus.Fatalf("broker: failed to ensure .data exists: %v", err)
+		return
+	}
+
+	data := fmt.Sprintf("%s/%s", DATA_DIR, topic)
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0777)
 	if err != nil {
-		logrus.Fatalf("broker: invalid subject: %v", err)
+		logrus.Fatalf("broker: invalid topic: %v", err)
 	}
 
 	defer file.Close()
@@ -145,7 +153,7 @@ func (b *Broker) handleConsumer(conn *net.Conn, subject string) {
 	for scanner.Scan() {
 		_, err := fmt.Fprintf(*conn, "%s\n", scanner.Text())
 		if err != nil {
-			logrus.Errorf("broker: error writing message to consumer: %v", err)
+			logrus.Errorf("broker: error writing message to source-connector: %v", err)
 			return
 		}
 	}
@@ -156,7 +164,7 @@ func (b *Broker) handleConsumer(conn *net.Conn, subject string) {
 func (b *Broker) broadcastMessages() {
 	for msg := range b.newMessage {
 		b.mu.Lock()
-		for _, conn := range b.consumers[msg.Subject] {
+		for _, conn := range b.sourceConnectors[msg.Topic] {
 			_, err := fmt.Fprintf(*conn, "%s", msg.Message)
 			if err != nil {
 				logrus.Errorf("broker: Error writing message to consumer: %v", err)
@@ -164,4 +172,8 @@ func (b *Broker) broadcastMessages() {
 		}
 		b.mu.Unlock()
 	}
+}
+
+func ensureDataDirExists() error {
+	return os.MkdirAll(DATA_DIR, os.ModePerm)
 }

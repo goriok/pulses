@@ -3,7 +3,7 @@ package stubs
 import (
 	"encoding/json"
 	"fmt"
-	"goriok/pulses/internal/fsbroker"
+	"goriok/pulses/internal/broker/fsbroker"
 	"goriok/pulses/internal/models"
 	"math/rand"
 	"os"
@@ -22,15 +22,15 @@ type SKU struct {
 	UseUnit string
 }
 
-func ProduceRandomTenantPulses(brokerHost string, subject string, tenantsAmount int, skuAmount int) error {
+func WriteRandomTenantPulses(brokerHost string, sourceTopic string, tenantsAmount int, skuAmount int) error {
 	err := setupStub()
 	if err != nil {
 		return err
 	}
 
-	producer := fsbroker.NewProducer(brokerHost)
-	producer.Connect(subject)
-	defer producer.Close()
+	sinkConnector := fsbroker.NewSinkConnector(brokerHost)
+	sinkConnector.Connect(sourceTopic)
+	defer sinkConnector.Close()
 
 	tenants := generateRandomTenants(tenantsAmount)
 	skus := generateRandomSKU(skuAmount)
@@ -51,7 +51,7 @@ func ProduceRandomTenantPulses(brokerHost string, subject string, tenantsAmount 
 		if err != nil {
 			return err
 		}
-		producer.Publish(subject, msg)
+		sinkConnector.Write(sourceTopic, msg)
 	}
 }
 
@@ -72,7 +72,7 @@ func setupStub() error {
 	return nil
 }
 
-func CleanSubjects() {
+func CleanTopics() {
 	err := os.RemoveAll(".data")
 	if err != nil {
 		logrus.Fatalf("failed to clean .data folder: %v", err)
