@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"goriok/pulses/cmd/ingester"
+	"goriok/pulses/cmd/ingestor"
 	"goriok/pulses/cmd/stubs"
 	"goriok/pulses/internal/fsbroker"
 	"time"
@@ -44,12 +44,12 @@ func main() {
 	producer := fsbroker.NewProducer(brokerHost)
 	defer producer.Close()
 
-	go ingester.Start(&ingester.Options{
+	go ingestor.GroupByTenant(&ingestor.Options{
 		PulsesSubject: PULSES_SUBJECT,
 		Consumer:      consumer,
 		Producer:      producer,
 	})
-	logrus.Infof("ingester started, pulses subject: %s", PULSES_SUBJECT)
+	logrus.Infof("ingestor started, pulses subject: %s", PULSES_SUBJECT)
 
 	select {}
 }

@@ -1,4 +1,4 @@
-package ingester
+package ingestor
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"goriok/pulses/internal/fsbroker"
 	"goriok/pulses/internal/models"
 	"math/rand/v2"
+	"regexp"
 	"sync"
 	"testing"
 	"time"
@@ -30,42 +31,50 @@ func TestMain(m *testing.M) {
 }
 
 func Test_integration_ingestor_receiving_message(t *testing.T) {
-	outboundMsgs := make(chan []byte, 1)
+	msgChan := make(chan []byte, 1)
 
-	tenantID := uuid.New().String()
-	productSKU := uuid.New().String()
+	tenantID := "b9abc5d1-6fa0-4abb-b944-58dad567ff92"
+	productSKU := "77f34178-f441-48f9-9ea8-523233e2c99b"
 	useUnit := "GB"
 
-	go outboundSubjectConsumer(tenantID, outboundMsgs)
+	testSubject := fmt.Sprintf("test.%s.cloud.pulses", uuid.New().String())
+	testConsumer := fsbroker.NewConsumer(brokerHost)
 
-	inboundSubject := testInboundSubject(tenantID)
-	go startIngester(inboundSubject)
+	cleanedTenantID := regexp.MustCompile(`[^\w\n]`).ReplaceAllString(tenantID, "")
 
+	pulsesTenantSubject := fmt.Sprintf("pulses.tenant.%s", cleanedTenantID)
+
+	go testConsumer.Connect(pulsesTenantSubject, func(subject string, message []byte) {
+		msgChan <- message
+	})
 	time.Sleep(1 * time.Second)
-	inboundMsgs := []*models.Pulse{{
+
+	pulse := &models.Pulse{
 		TenantID:    tenantID,
 		ProductSKU:  productSKU,
 		UsedAmmount: rand.Float64() * 100,
 		UseUnity:    useUnit,
-	}}
-	err := publish(inboundSubject, inboundMsgs)
+	}
+
+	pulses := []*models.Pulse{pulse}
+	err := publish(testSubject, pulses)
 	if err != nil {
 		t.Fatalf("Test failed: Unable to publish message: %v", err)
 	}
 
 	select {
-	case outboundMessage := <-outboundMsgs:
-		var pulse models.Pulse
-		err := json.Unmarshal(outboundMessage, &pulse)
+	case receivedMsg := <-msgChan:
+		var receivedPulse models.Pulse
+		err := json.Unmarshal(receivedMsg, &receivedPulse)
 		if err != nil {
 			t.Fatalf("Test failed: Unable to unmarshal received message: %v", err)
 		}
 
-		if pulse.TenantID != tenantID || pulse.ProductSKU != productSKU || pulse.UseUnity != useUnit {
-			t.Fatalf("Test failed: Received message does not match expected values. Got %+v", pulse)
+		if receivedPulse.TenantID != tenantID || receivedPulse.ProductSKU != productSKU || receivedPulse.UseUnity != useUnit {
+			t.Fatalf("Test failed: Received message does not match expected values. Got %+v", receivedPulse)
 		}
 
-		t.Logf("Test passed: Received expected message: %+v", pulse)
+		t.Logf("Test passed: Received expected message: %+v", receivedPulse)
 	case <-time.After(3 * time.Second):
 		t.Fatal("Test failed: Timeout waiting for message")
 	}
@@ -103,30 +112,4 @@ func publish(subject string, msgs []*models.Pulse) error {
 	}
 
 	return nil
-}
-
-func outboundSubjectConsumer(tenantID string, msgChan chan []byte) {
-	pulsesTenantSubject := fmt.Sprintf("pulses.tenant.%s", tenantID)
-	testConsumer := fsbroker.NewConsumer(brokerHost)
-
-	testConsumer.Connect(pulsesTenantSubject, func(subject string, message []byte) {
-		msgChan <- message
-	})
-}
-
-func startIngester(testSubject string) {
-	consumer := fsbroker.NewConsumer(brokerHost)
-	defer consumer.Close()
-
-	producer := fsbroker.NewProducer(brokerHost)
-	defer producer.Close()
-	Start(&Options{
-		PulsesSubject: testSubject,
-		Consumer:      consumer,
-		Producer:      producer,
-	})
-}
-
-func testInboundSubject(id string) string {
-	return fmt.Sprintf("test.%s.cloud.pulses", id)
 }
