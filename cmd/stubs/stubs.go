@@ -12,16 +12,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func PulsesGenerator(brokerHost string, subject string) error {
+func PulsesGenerator(brokerHost string, subject string, amount int) error {
 	producer := fsbroker.NewProducer(brokerHost)
 	producer.Connect(subject)
 
-	for {
-		tenantId := uuid.New().String()
-		productSKU := uuid.New().String()
+	tenantId := uuid.New().String()
+	productSKU := uuid.New().String()
+
+	for i := 1; i <= amount; i++ {
 		useUnit := fmt.Sprintf("unit_%d", rand.Intn(10))
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 		pulse := &models.Pulse{
 			TenantID:    tenantId,
 			ProductSKU:  productSKU,
@@ -36,4 +37,6 @@ func PulsesGenerator(brokerHost string, subject string) error {
 		producer.Publish(subject, msg)
 		logrus.Debugf("PRODUCER-STUB: published message on subject %s: %s", subject, msg)
 	}
+
+	return nil
 }

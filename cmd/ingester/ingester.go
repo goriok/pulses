@@ -12,24 +12,24 @@ type Consumer interface {
 	Connect(subject string, handler func(subject string, message []byte)) error
 }
 
-type Publisher interface {
-	Connect(subject string)
+type Producer interface {
+	Connect(subject string) error
 	Publish(subject string, message []byte) error
 }
 
 type Options struct {
 	PulsesSubject string
 	Consumer      Consumer
-	Publisher     Publisher
+	Producer      Producer
 }
 
 func Start(opts *Options) error {
-	publisher := opts.Publisher
+	publisher := opts.Producer
 	consumer := opts.Consumer
 
 	err := consumer.Connect(opts.PulsesSubject, func(subject string, message []byte) {
-		var pulse *models.Pulse
-		err := json.Unmarshal(message, pulse)
+		var pulse models.Pulse
+		err := json.Unmarshal(message, &pulse)
 		if err != nil {
 			logrus.Errorf("Failed to unmarshal message: %v", err)
 		}

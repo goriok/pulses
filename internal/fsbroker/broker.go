@@ -16,20 +16,26 @@ const (
 )
 
 type Broker struct {
-	consumers  []net.Conn
-	newMessage chan string
-	mu         sync.Mutex
-	host       string
-	listener   *net.Listener
+	consumers  map[string][]net.Conn
+	newMessage chan struct {
+		Subject string
+		Message string
+	}
+	mu       sync.Mutex
+	host     string
+	listener *net.Listener
 }
 
 func NewBroker(port int) *Broker {
 	host := fmt.Sprintf("localhost:%d", port)
 
 	return &Broker{
-		consumers:  []net.Conn{},
-		newMessage: make(chan string),
-		host:       host,
+		consumers: make(map[string][]net.Conn),
+		newMessage: make(chan struct {
+			Subject string
+			Message string
+		}),
+		host: host,
 	}
 }
 
@@ -47,14 +53,14 @@ func (b *Broker) Start() error {
 	b.listener = &listener
 	defer listener.Close()
 
-	logrus.Infof("Broker: Listening on %s\n", b.host)
+	logrus.Infof("Broker: Listening on %s", b.host)
 
 	go b.broadcastMessages()
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			logrus.Errorf("Broker: Error accepting connection => %v\n", err)
+			logrus.Errorf("Broker: Error accepting connection => %v", err)
 			continue
 		}
 
@@ -80,15 +86,14 @@ func (b *Broker) handleConnection(conn net.Conn) {
 	greeting = greeting[:len(greeting)-1]
 
 	data := strings.Split(greeting, "_")
-
 	if data[0] == "producer" {
-		logrus.Infof("Broker: Producer connected on subject %s\n", data[1])
+		logrus.Debugf("Broker: Producer connected on subject %s", data[1])
 		b.handleProducer(reader, data[1])
 	} else if data[0] == "consumer" {
-		logrus.Infof("Broker: Consumer connected on subject %s\n", data[1])
+		logrus.Debugf("Broker: Consumer connected on subject %s", data[1])
 		b.handleConsumer(conn, data[1])
 	} else {
-		logrus.Errorf("Broker: Unknown client type: %s\n", data[0])
+		logrus.Errorf("Broker: Unknown client type: %s", data[0])
 	}
 }
 
@@ -98,7 +103,7 @@ func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		logrus.Fatalf("Broker: invalid subject: %v\n", err)
+		logrus.Fatalf("Broker: invalid subject: %v", err)
 		return
 	}
 	defer file.Close()
@@ -106,24 +111,27 @@ func (b *Broker) handleProducer(reader *bufio.Reader, subject string) {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			logrus.Errorf("Broker: Error reading message: %v\n", err)
+			logrus.Errorf("Broker: Error reading message: %v", err)
 			return
 		}
 
 		_, err = file.WriteString(message)
 		if err != nil {
-			logrus.Errorf("Broker: Error writing message: %v\n", err)
+			logrus.Errorf("Broker: Error writing message: %v", err)
 			return
 		}
-		logrus.Infof("Broker: Message written to file: %s\n", message)
+		logrus.Infof("Broker: Message written to file: %s", message)
 
-		b.newMessage <- message
+		b.newMessage <- struct {
+			Subject string
+			Message string
+		}{Subject: subject, Message: message}
 	}
 }
 
 func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 	b.mu.Lock()
-	b.consumers = append(b.consumers, conn)
+	b.consumers[subject] = append(b.consumers[subject], conn)
 	b.mu.Unlock()
 
 	data := fmt.Sprintf("%s/%s", dataDir, subject)
@@ -131,7 +139,7 @@ func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 
 	file, err := os.OpenFile(data, os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0777)
 	if err != nil {
-		logrus.Fatalf("Broker: invalid subject: %v\n", err)
+		logrus.Fatalf("Broker: invalid subject: %v", err)
 	}
 
 	defer file.Close()
@@ -139,7 +147,7 @@ func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 	for scanner.Scan() {
 		_, err := fmt.Fprintf(conn, "%s\n", scanner.Text())
 		if err != nil {
-			logrus.Errorf("Broker: Error writing message to consumer: %v\n", err)
+			logrus.Errorf("Broker: Error writing message to consumer: %v", err)
 			return
 		}
 	}
@@ -148,12 +156,12 @@ func (b *Broker) handleConsumer(conn net.Conn, subject string) {
 }
 
 func (b *Broker) broadcastMessages() {
-	for message := range b.newMessage {
+	for msg := range b.newMessage {
 		b.mu.Lock()
-		for _, consumer := range b.consumers {
-			_, err := fmt.Fprintf(consumer, "%s", message)
+		for _, consumer := range b.consumers[msg.Subject] {
+			_, err := fmt.Fprintf(consumer, "%s", msg.Message)
 			if err != nil {
-				logrus.Errorf("Broker: Error writing message to consumer: %v\n", err)
+				logrus.Errorf("Broker: Error writing message to consumer: %v", err)
 			}
 		}
 		b.mu.Unlock()

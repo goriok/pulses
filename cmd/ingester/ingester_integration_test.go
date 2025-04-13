@@ -6,6 +6,7 @@ import (
 	"goriok/pulses/internal/fsbroker"
 	"goriok/pulses/internal/models"
 	"math/rand/v2"
+	"regexp"
 	"sync"
 	"testing"
 	"time"
@@ -57,7 +58,8 @@ func Test_integration_ingestor_receiving_message(t *testing.T) {
 	}
 
 	testConsumer := fsbroker.NewConsumer(brokerHost)
-	pulsesTenantSubject := fmt.Sprintf("pulses.tenant.%s", tenantId)
+	cleanedTenantID := regexp.MustCompile(`[^\w\n]`).ReplaceAllString(pulse.TenantID, "")
+	pulsesTenantSubject := fmt.Sprintf("pulses.tenant.%s", cleanedTenantID)
 
 	go testConsumer.Connect(pulsesTenantSubject, func(subject string, message []byte) {
 		msgChan <- message
