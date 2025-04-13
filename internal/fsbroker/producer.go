@@ -12,18 +12,16 @@ import (
 
 type Producer struct {
 	broker     string
-	conn       *net.Conn
 	mu         sync.Mutex
-	cache      map[string]string
+	cache      map[string]*net.Conn
 	expiration map[string]time.Time
 }
 
 func NewProducer(broker string) *Producer {
 	return &Producer{
 		broker,
-		nil,
 		sync.Mutex{},
-		make(map[string]string),
+		make(map[string]*net.Conn),
 		make(map[string]time.Time),
 	}
 }
@@ -35,6 +33,8 @@ func (p *Producer) Connect(subject string) error {
 		}
 		p.mu.Lock()
 		defer p.mu.Unlock()
+
+		(*p.cache[subject]).Close()
 		delete(p.cache, subject)
 		delete(p.expiration, subject)
 	}
@@ -45,31 +45,32 @@ func (p *Producer) Connect(subject string) error {
 	if err != nil {
 		return err
 	}
+	p.cache[subject] = &conn
 
-	p.conn = &conn
-	fmt.Fprintf(*(p.conn), "producer_%s\n", subject)
-	logrus.Infof("Connected to broker %s as producer for subject %s", p.broker, subject)
+	fmt.Fprintf(*p.cache[subject], "producer_%s\n", subject)
+	logrus.Infof("producer: connected to broker %s for subject %s", p.broker, subject)
 
-	p.cache[subject] = subject
 	p.expiration[subject] = time.Now().Add(5 * time.Minute)
 
 	return nil
 }
 
 func (p *Producer) Close() {
-	if p.conn != nil {
-		(*p.conn).Close()
+	for _, conn := range p.cache {
+		if conn == nil {
+			continue
+		}
+
+		(*conn).Close()
 	}
 }
 
 func (p *Producer) Publish(subject string, msg []byte) error {
-	if p.conn == nil {
-		return fmt.Errorf("producer not connected")
+	if p.cache[subject] == nil {
+		return fmt.Errorf("producer: producer not connected")
 	}
 
 	msgCleaned := strings.TrimSuffix(string(msg), "\n")
-
-	fmt.Fprintf(*p.conn, "%s\n", msgCleaned)
-	logrus.Debugf("Published message to subject %s: %s", subject, msg)
+	fmt.Fprintf(*p.cache[subject], "%s\n", msgCleaned)
 	return nil
 }

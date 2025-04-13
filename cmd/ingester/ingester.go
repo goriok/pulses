@@ -31,11 +31,22 @@ func Start(opts *Options) error {
 		var pulse models.Pulse
 		err := json.Unmarshal(message, &pulse)
 		if err != nil {
-			logrus.Errorf("Failed to unmarshal message: %v", err)
+			logrus.Errorf("ingestor: Failed to unmarshal message: %v", err)
 		}
+
 		tenantPulsesSubject := fmt.Sprintf("pulses.tenant.%s", pulse.TenantID)
-		publisher.Connect(tenantPulsesSubject)
-		publisher.Publish(tenantPulsesSubject, message)
+
+		err = publisher.Connect(tenantPulsesSubject)
+		if err != nil {
+			logrus.Errorf("ingestor: Failed to connect to tenant pulses subject: %v", err)
+			return
+		}
+
+		err = publisher.Publish(tenantPulsesSubject, message)
+		if err != nil {
+			logrus.Errorf("ingestor: Failed to publish message to tenant pulses subject: %v", err)
+			return
+		}
 	})
 	return err
 }
