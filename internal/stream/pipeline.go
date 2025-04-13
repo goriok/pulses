@@ -2,12 +2,14 @@ package stream
 
 import (
 	"encoding/json"
+	"fmt"
 	"goriok/pulses/internal/models"
 	"goriok/pulses/internal/stream/aggregators"
 	"goriok/pulses/internal/stream/aggregators/engines"
-	"goriok/pulses/internal/stream/router"
 	"goriok/pulses/internal/stream/sinks"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,38 +32,54 @@ type Options struct {
 	SinkConnector   SinkConnector
 }
 
-// StartPipeline sets up and starts the stream processing pipeline.
-//
-// It connects to the given source topic via the SourceConnector, and for each incoming
-// message:
-//   - Deserializes it into a Pulse
-//   - Routes it to a tenant-specific topic (raw fan-out)
-//   - Sends it to an in-memory aggregator (TenantSKUAmount) for batching and flushing
-//
-// Aggregated results are emitted every 30 seconds to a sink via the Producer.
-//
-// # Parameters
-//   - opts: configuration including source topic, SourceConnector, and producer.
-//
-// # Returns
-//   - error if connection to the SourceConnector stream fails or processing panics.
-func StartPipeline(opts *Options) error {
-	sink := sinks.NewStreamSink(opts.SinkConnector)
+type Pipeline struct{}
+
+func NewPipeline() *Pipeline {
+	return &Pipeline{}
+}
+
+func (p *Pipeline) Start(opts *Options) error {
+	sourceConnector := opts.SourceConnector
+	sinkConnector := opts.SinkConnector
+
+	groupedSink := sinks.NewStreamSink(sinkConnector)
+
+	aggregatedSink := sinks.NewStreamSink(sinkConnector)
 
 	aggregator := engines.NewMemoryAggregator(
 		aggregators.TenantSKUKey,
 		aggregators.TenantSKUAmount,
-		sink,
+		aggregators.TenantSKUInfo,
+		aggregatedSink,
 	)
 
-	return opts.SourceConnector.Read(opts.SourceTopic, func(topic string, message []byte) {
+	return sourceConnector.Read(opts.SourceTopic, func(topic string, message []byte) {
 		var pulse models.Pulse
 		if err := json.Unmarshal(message, &pulse); err != nil {
 			logrus.Errorf("stream: failed to unmarshal: %v", err)
 			return
 		}
 
-		router.FanOutToTenant(opts.SinkConnector, &pulse, message)
+		groupedTopic := fmt.Sprintf("tenants.%s.grouped.pulses", pulse.TenantID)
+
+		newMsg := map[string]any{
+			"object_id":   uuid.New().String(),
+			"tenant_id":   pulse.TenantID,
+			"product_sku": pulse.ProductSKU,
+			"use_unit":    pulse.UseUnity,
+			"used_amount": pulse.UsedAmmount,
+			"timestamp":   time.Now().Unix(),
+		}
+
+		newMsgData, err := json.Marshal(newMsg)
+		if err != nil {
+			logrus.Errorf("stream: failed to marshal grouped pulse: %v", err)
+		}
+
+		if err := groupedSink.Write(groupedTopic, newMsgData); err != nil {
+			logrus.Errorf("stream: failed to sink raw grouped pulse: %v", err)
+		}
+
 		aggregator.Add(&pulse)
 	})
 }

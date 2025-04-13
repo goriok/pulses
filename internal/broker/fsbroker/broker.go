@@ -1,3 +1,6 @@
+// Package fsbroker implements a lightweight, filesystem-backed message broker
+// for local development and testing. It simulates publish/subscribe behavior
+// using TCP connections and disk-based topic storage in the `.data` directory.
 package fsbroker
 
 import (
@@ -15,6 +18,9 @@ const (
 	DATA_DIR = ".data"
 )
 
+// Broker is a local TCP server that simulates a pub/sub broker.
+// It stores messages per topic as files in the .data directory,
+// and manages connected source and sink connectors.
 type Broker struct {
 	sourceConnectors map[string][]*net.Conn
 	newMessage       chan struct {
@@ -43,6 +49,8 @@ func (b *Broker) On() bool {
 	return b.listener != nil
 }
 
+// Start begins accepting TCP connections from clients.
+// It listens for both sink and source connectors and handles broadcasting.
 func (b *Broker) Start() error {
 	listener, err := net.Listen("tcp", b.host)
 	if err != nil {
@@ -78,6 +86,8 @@ func (b *Broker) Host() string {
 	return b.host
 }
 
+// handleConnection receives the initial greeting from a connector to determine
+// whether it is a sink or source, and delegates to the appropriate handler.
 func (b *Broker) handleConnection(conn *net.Conn) {
 	defer (*conn).Close()
 
@@ -97,6 +107,8 @@ func (b *Broker) handleConnection(conn *net.Conn) {
 	}
 }
 
+// handleSinkConnector reads messages from a sink connector and appends them to disk.
+// It then broadcasts the message to all connected source connectors for that topic.
 func (b *Broker) handleSinkConnector(reader *bufio.Reader, topic string) {
 	data := fmt.Sprintf("%s/%s", DATA_DIR, topic)
 	if err := ensureDataDirExists(); err != nil {
@@ -132,6 +144,8 @@ func (b *Broker) handleSinkConnector(reader *bufio.Reader, topic string) {
 	}
 }
 
+// handleSourceConnector registers a source connector to a topic and replays existing messages.
+// It will remain open indefinitely, receiving messages via broadcast.
 func (b *Broker) handleSourceConnector(conn *net.Conn, topic string) {
 	b.mu.Lock()
 	b.sourceConnectors[topic] = append(b.sourceConnectors[topic], conn)
@@ -161,6 +175,7 @@ func (b *Broker) handleSourceConnector(conn *net.Conn, topic string) {
 	select {}
 }
 
+// broadcastMessages delivers new messages to all source connectors subscribed to the topic.
 func (b *Broker) broadcastMessages() {
 	for msg := range b.newMessage {
 		b.mu.Lock()
