@@ -1,6 +1,71 @@
 ![CI](https://github.com/goriok/pulses/actions/workflows/build.yml/badge.svg)
 
-# Pulses
+# Pulses — Stream Ingestor for Cloud Usage Events
+
+> A lightweight, modular ingestor designed for aggregating real-time usage pulses in a billing platform.
+
+This repository contains a **standalone, continuously running process** that receives, aggregates, and periodically flushes usage data ("pulses") from cloud services. The architecture is built around **stream processing principles**, allowing for future adoption of distributed systems like **Kafka** or **NATS Streaming**.
+
+The internal structure already supports this evolution through well-defined interfaces, making the project a natural fit for a **Kappa Architecture** approach — where the stream is the single source of truth.
+
+---
+
+## Problem Statement
+
+In cloud platforms, every user action (e.g., storing files, running instances, transferring data) must be tracked and billed. These actions are captured as **pulses** — small units of consumption that identify:
+
+- the **tenant** (who used it),
+- the **SKU** (what was used),
+- the **used amount**,
+- and the **metric unit** (e.g., "GB", "GB·min").
+
+The **Ingestor** is responsible for:
+
+- Continuously receiving these pulses from a source system;
+- Aggregating them by `(tenant, SKU, unit)`;
+- Periodically **flushing the aggregated data** to downstream processors for pricing and storage.
+
+---
+
+## Architecture
+
+This project follows the [C4 model](https://c4model.com) for software architecture, with the Ingestor acting as the initial stage of a broader **cloud usage billing pipeline**.
+
+> ❗ The Ingestor does **not** handle pricing, contracts, or SKU authorization. These responsibilities are delegated to downstream services.
+
+### System Context
+
+```mermaid
+flowchart TD
+    subgraph Billing Platform
+        Ingestor["Ingestor"]
+        Catalog["Contracts & Catalog"]
+        Processor["Usage Processor & Storage"]
+        QueryAPI["Query API"]
+    end
+
+    Cloud["Cloud Systems (Usage Generators)"]
+    Frontend["Customer Dashboard / Frontend"]
+
+    Cloud -->|Usage Pulses| Ingestor
+    Ingestor -->|Aggregated Pulses| Processor
+    Processor -->|Billed Usage Data| QueryAPI
+    Frontend -->|Fetch Usage| QueryAPI
+    Processor -->|Monthly Reports| Catalog
+```
+
+## Project Structure
+
+````bash
+.
+├── cmd/ # Ingestor entrypoint
+├── internal/
+│ ├── app/ # Application orchestration
+│ ├── broker/ # I/O connectors (FS, Kafka, NATS)
+│ ├── models/ # Domain models (pulses)
+│ └── stream/ # Pipeline, aggregation logic, sinks
+└── test/ # Integration tests
+
 
 ## Getting Started with Devbox
 
@@ -11,7 +76,8 @@ To simplify the developer setup process, we use [Devbox](https://www.jetpack.io/
    ```bash
    git clone https://github.com/your-username/pulses.git
    cd pulses
-   ```
+````
+
 3. Start the Devbox environment:
    ```bash
    devbox shell
@@ -22,6 +88,31 @@ To simplify the developer setup process, we use [Devbox](https://www.jetpack.io/
    ```
 
 You're now ready to start developing!
+
+## Command-Line Options
+
+You can customize the behavior of the Ingestor using the following flags:
+
+| Flag             | Type     | Default           | Description                                                                     |
+| ---------------- | -------- | ----------------- | ------------------------------------------------------------------------------- |
+| `--port`         | `int`    | `9000`            | Port on which the internal file-system broker will run. Used for local testing. |
+| `--source-topic` | `string` | `"source.pulses"` | Logical topic name where input pulses are published.                            |
+| `--stub`         | `bool`   | `false`           | Enables stub mode. When enabled, the system generates synthetic pulses.         |
+| `--stub-tenants` | `int`    | `10`              | Number of tenants to simulate in stub mode.                                     |
+| `--stub-skus`    | `int`    | `50`              | Number of SKUs to simulate in stub mode.                                        |
+| `--stub-clean`   | `bool`   | `false`           | Cleans all topics before writing new stub data. Useful for fresh runs.          |
+
+### 🧪 Example Usage
+
+Start the Ingestor with 5 tenants and 20 SKUs (randomly generated) in stub mode:
+
+```bash
+go run ./cmd/ingestor \
+  --stub \
+  --stub-tenants=5 \
+  --stub-skus=20 \
+  --stub-clean
+```
 
 ## Documentation
 
@@ -49,11 +140,15 @@ import "goriok/pulses/cmd/ingestor"
 
 ## Index
 
-- [func main\(\)](<#main>)
-
+- [func main\(\)](#main)
 
 <a name="main"></a>
+<<<<<<< HEAD
 ## func [main](<https://github.com/goriok/pulses/blob/main/cmd/ingestor/main.go#L13>)
+=======
+
+## func [main](https://github.com/goriok/pulses/blob/main/cmd/ingestor/main.go#L22)
+>>>>>>> f942e38 (feat: update README)
 
 ```go
 func main()
@@ -838,7 +933,6 @@ func (s *StreamSink) Write(topic string, data []byte) error
 
 
 
-Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)
-
+Generated by [gomarkdoc](https://github.com/princjef/gomarkdoc)
 
 <!-- gomarkdoc:embed:end -->
