@@ -20,6 +20,10 @@ func NewSourceConnector(broker string) *SourceConnector {
 	}
 }
 
+// Read connects to the broker and subscribes to the given topic.
+//
+// It invokes the provided handler for every message received from the broker.
+// This function blocks indefinitely unless an error occurs.
 func (c *SourceConnector) Read(topic string, handler func(topic string, msg []byte)) error {
 	conn, err := net.Dial("tcp", c.broker)
 	if err != nil {

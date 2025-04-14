@@ -1,3 +1,8 @@
+// Package stream implements the core processing pipeline for routing,
+// transforming, and aggregating messages from a source stream.
+//
+// It wires together connectors, sinks, and aggregation engines to
+// produce grouped and aggregated outputs in a Kappa-like stream model.
 package stream
 
 import (
@@ -13,19 +18,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// SourceConnector defines an input stream that can receive messages by topic.
 type SourceConnector interface {
 	Read(topic string, handler func(topic string, message []byte)) error
 }
 
-// SinkConnector defines an output stream that can publish messages to a topic.
 type SinkConnector interface {
 	Connect(topic string) error
 	Write(topic string, message []byte) error
 }
 
-// Options defines the configuration for setting up the stream pipeline.
-// It includes the source topic and the input/output stream interfaces.
 type Options struct {
 	SourceTopic     string
 	SourceConnector SourceConnector
@@ -38,6 +39,12 @@ func NewPipeline() *Pipeline {
 	return &Pipeline{}
 }
 
+// Start launches the pipeline with the provided options.
+// It reads from the source topic, emits grouped events per tenant,
+// and applies a memory-based aggregation for each (tenant_id, product_sku) pair.
+//
+// Grouped messages are enriched with object IDs and timestamps, and both
+// grouped and aggregated results are written to the appropriate sinks.
 func (p *Pipeline) Start(opts *Options) error {
 	sourceConnector := opts.SourceConnector
 	sinkConnector := opts.SinkConnector

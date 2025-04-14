@@ -1,4 +1,8 @@
-// internal/stream/aggregators/engines/memory.go
+// Package engines provides low-level aggregation strategies for stream processing.
+//
+// This file defines an in-memory implementation used for aggregating data
+// within a flush window. It is useful for local development or testing scenarios,
+// and can later be replaced by distributed or persistent alternatives like Redis or Kafka Streams.
 package engines
 
 import (
@@ -73,7 +77,8 @@ func (a *MemoryAggregator) Add(event any) {
 	a.mu.Unlock()
 }
 
-// run periodically flushes the buffer to the sink.
+// run executes the aggregation flushing loop.
+// It periodically drains the current buffer and sends the results to the sink.
 func (a *MemoryAggregator) run() {
 	ticker := time.NewTicker(a.flushEvery)
 	defer ticker.Stop()

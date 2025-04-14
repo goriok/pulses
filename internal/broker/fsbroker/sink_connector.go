@@ -10,6 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// SinkConnector provides an interface for writing messages to a specific topic
+// on a filesystem-backed broker via TCP. It includes connection caching and expiration.
 type SinkConnector struct {
 	broker     string
 	mu         sync.Mutex
@@ -17,6 +19,8 @@ type SinkConnector struct {
 	expiration map[string]time.Time
 }
 
+// SinkConnector manages outbound TCP connections to broker topics
+// and publishes messages by writing to a topic-specific stream.
 func NewSinkConnector(broker string) *SinkConnector {
 	return &SinkConnector{
 		broker,
@@ -26,6 +30,10 @@ func NewSinkConnector(broker string) *SinkConnector {
 	}
 }
 
+// Connect establishes or reuses a TCP connection to the specified topic.
+//
+// Connections are cached per topic and automatically expire after 5 minutes.
+// If a valid connection already exists, it is reused.
 func (p *SinkConnector) Connect(topic string) error {
 	if _, ok := p.cache[topic]; ok {
 		if time.Now().Before(p.expiration[topic]) {

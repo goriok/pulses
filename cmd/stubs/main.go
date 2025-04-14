@@ -1,8 +1,3 @@
-// Package stubs provides utilities for generating mock tenant usage data
-// to simulate streaming input during local testing or development.
-//
-// It writes randomly generated pulses to a configured topic on a
-// filesystem-backed broker using a SinkConnector.
 package stubs
 
 import (
@@ -27,17 +22,6 @@ type SKU struct {
 	UseUnit string
 }
 
-// WriteRandomTenantPulses generates and continuously publishes random tenant pulses
-// to the given source topic on the broker. It simulates activity across a range of
-// tenants and product SKUs.
-//
-// The function blocks indefinitely and is intended to be run in a goroutine during testing.
-//
-// Parameters:
-//   - brokerHost: the address of the broker (e.g. "localhost:9000")
-//   - sourceTopic: the topic to which mock pulses should be published
-//   - tenantsAmount: number of unique tenant IDs to generate
-//   - skuAmount: number of unique product SKUs to simulate
 func WriteRandomTenantPulses(brokerHost string, sourceTopic string, tenantsAmount int, skuAmount int) error {
 	err := setupStub()
 	if err != nil {

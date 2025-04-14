@@ -18,7 +18,7 @@ build:
 docs:
   #! /bin/bash
   set -e
-  devbox run gomarkdoc -u -o README.md -e ./cmd/ingestor
+  devbox run gomarkdoc -o README.md -u -e $(go list -json ./... | jq -r '.Dir' | grep -v '/test') 
   echo "README.md has been updated"
 
 source:

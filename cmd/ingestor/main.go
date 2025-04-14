@@ -1,8 +1,3 @@
-// Package ingestor provides the main application entry point
-// for coordinating the stream processing pipeline.
-//
-// It initializes connectors to a filesystem-backed message broker
-// and delegates message routing and aggregation to internal stream logic.
 package main
 
 import (
@@ -15,10 +10,6 @@ import (
 	"time"
 )
 
-// main configures the ingestor application using command-line flags,
-// starts the local filesystem-backed broker, and launches the processing pipeline.
-//
-// Optionally, it runs stub data generators for simulating tenant pulse messages.
 func main() {
 	var cfg ingestor.Config
 
