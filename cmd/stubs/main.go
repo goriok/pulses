@@ -36,7 +36,7 @@ func WriteRandomTenantPulses(brokerHost string, sourceTopic string, tenantsAmoun
 	skus := generateRandomSKU(skuAmount)
 
 	for {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		randomTenant := tenants[rand.Intn(len(tenants)-1)]
 		randomSKU := skus[rand.Intn(len(skus)-1)]
 

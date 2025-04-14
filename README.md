@@ -54,6 +54,33 @@ flowchart TD
     Processor -->|Monthly Reports| Catalog
 ```
 
+### Data Flow
+
+```mermaid
+flowchart TD
+    subgraph "Source System"
+        SourceInput["Pulse Generator<br/>(e.g. Stubs, FS, Kafka)"]
+    end
+
+    subgraph "Ingestor Core"
+        SourceTopic["Topic: source.pulses"]
+        Pipeline["Pipeline"]
+        SinkTopic["Topic: tenant.aggregated.pulses.amount"]
+        SinkTopic2["Topic: tenant.grouped.pulses"]
+
+    end
+
+    subgraph "Consumers"
+        Processor["Processor & Storage"]
+    end
+
+    SourceInput -->|Publishes Pulses| SourceTopic
+    SourceTopic --> Pipeline
+    SinkTopic -->|Consumed Periodically| Processor
+    Pipeline --> SinkTopic
+    Pipeline --> SinkTopic2
+```
+
 ## Project Structure
 
 ````bash
@@ -144,17 +171,18 @@ import "goriok/pulses/cmd/ingestor"
 
 <a name="main"></a>
 <<<<<<< HEAD
-## func [main](<https://github.com/goriok/pulses/blob/main/cmd/ingestor/main.go#L13>)
+
+## func [main](https://github.com/goriok/pulses/blob/main/cmd/ingestor/main.go#L13)
+
 =======
 
 ## func [main](https://github.com/goriok/pulses/blob/main/cmd/ingestor/main.go#L22)
->>>>>>> f942e38 (feat: update README)
+
+> > > > > > > f942e38 (feat: update README)
 
 ```go
 func main()
 ```
-
-
 
 # stubs
 
@@ -164,14 +192,13 @@ import "goriok/pulses/cmd/stubs"
 
 ## Index
 
-- [Constants](<#constants>)
-- [func CleanTopics\(\)](<#CleanTopics>)
-- [func WriteRandomTenantPulses\(brokerHost string, sourceTopic string, tenantsAmount int, skuAmount int\) error](<#WriteRandomTenantPulses>)
-- [func generateRandomTenants\(amount int\) \[\]string](<#generateRandomTenants>)
-- [func setupStub\(\) error](<#setupStub>)
-- [type SKU](<#SKU>)
-  - [func generateRandomSKU\(amount int\) \[\]\*SKU](<#generateRandomSKU>)
-
+- [Constants](#constants)
+- [func CleanTopics\(\)](#CleanTopics)
+- [func WriteRandomTenantPulses\(brokerHost string, sourceTopic string, tenantsAmount int, skuAmount int\) error](#WriteRandomTenantPulses)
+- [func generateRandomTenants\(amount int\) \[\]string](#generateRandomTenants)
+- [func setupStub\(\) error](#setupStub)
+- [type SKU](#SKU)
+  - [func generateRandomSKU\(amount int\) \[\]\*SKU](#generateRandomSKU)
 
 ## Constants
 
@@ -184,45 +211,40 @@ const (
 ```
 
 <a name="CleanTopics"></a>
-## func [CleanTopics](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L75>)
+
+## func [CleanTopics](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L75)
 
 ```go
 func CleanTopics()
 ```
 
-
-
 <a name="WriteRandomTenantPulses"></a>
-## func [WriteRandomTenantPulses](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L25>)
+
+## func [WriteRandomTenantPulses](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L25)
 
 ```go
 func WriteRandomTenantPulses(brokerHost string, sourceTopic string, tenantsAmount int, skuAmount int) error
 ```
 
-
-
 <a name="generateRandomTenants"></a>
-## func [generateRandomTenants](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L95>)
+
+## func [generateRandomTenants](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L95)
 
 ```go
 func generateRandomTenants(amount int) []string
 ```
 
-
-
 <a name="setupStub"></a>
-## func [setupStub](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L58>)
+
+## func [setupStub](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L58)
 
 ```go
 func setupStub() error
 ```
 
-
-
 <a name="SKU"></a>
-## type [SKU](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L20-L23>)
 
-
+## type [SKU](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L20-L23)
 
 ```go
 type SKU struct {
@@ -232,13 +254,12 @@ type SKU struct {
 ```
 
 <a name="generateRandomSKU"></a>
-### func [generateRandomSKU](<https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L83>)
+
+### func [generateRandomSKU](https://github.com/goriok/pulses/blob/main/cmd/stubs/main.go#L83)
 
 ```go
 func generateRandomSKU(amount int) []*SKU
 ```
-
-
 
 # ingestor
 
@@ -252,20 +273,18 @@ It wires together a source connector, a sink connector, and the pipeline that or
 
 ## Index
 
-- [type App](<#App>)
-  - [func New\(cfg Config\) \*App](<#New>)
-  - [func \(a \*App\) Start\(\) error](<#App.Start>)
-  - [func \(a \*App\) Stop\(\)](<#App.Stop>)
-- [type Config](<#Config>)
-- [type Pipeline](<#Pipeline>)
-- [type SinkConnector](<#SinkConnector>)
-- [type SourceConnector](<#SourceConnector>)
-
+- [type App](#App)
+  - [func New\(cfg Config\) \*App](#New)
+  - [func \(a \*App\) Start\(\) error](#App.Start)
+  - [func \(a \*App\) Stop\(\)](#App.Stop)
+- [type Config](#Config)
+- [type Pipeline](#Pipeline)
+- [type SinkConnector](#SinkConnector)
+- [type SourceConnector](#SourceConnector)
 
 <a name="App"></a>
-## type [App](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L39-L44>)
 
-
+## type [App](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L39-L44)
 
 ```go
 type App struct {
@@ -277,36 +296,32 @@ type App struct {
 ```
 
 <a name="New"></a>
-### func [New](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L46>)
+
+### func [New](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L46)
 
 ```go
 func New(cfg Config) *App
 ```
 
-
-
 <a name="App.Start"></a>
-### func \(\*App\) [Start](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L57>)
+
+### func \(\*App\) [Start](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L57)
 
 ```go
 func (a *App) Start() error
 ```
 
-
-
 <a name="App.Stop"></a>
-### func \(\*App\) [Stop](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L70>)
+
+### func \(\*App\) [Stop](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L70)
 
 ```go
 func (a *App) Stop()
 ```
 
-
-
 <a name="Config"></a>
-## type [Config](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L30-L37>)
 
-
+## type [Config](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L30-L37)
 
 ```go
 type Config struct {
@@ -320,9 +335,8 @@ type Config struct {
 ```
 
 <a name="Pipeline"></a>
-## type [Pipeline](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L15-L17>)
 
-
+## type [Pipeline](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L15-L17)
 
 ```go
 type Pipeline interface {
@@ -331,9 +345,8 @@ type Pipeline interface {
 ```
 
 <a name="SinkConnector"></a>
-## type [SinkConnector](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L24-L28>)
 
-
+## type [SinkConnector](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L24-L28)
 
 ```go
 type SinkConnector interface {
@@ -344,9 +357,8 @@ type SinkConnector interface {
 ```
 
 <a name="SourceConnector"></a>
-## type [SourceConnector](<https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L19-L22>)
 
-
+## type [SourceConnector](https://github.com/goriok/pulses/blob/main/internal/app/ingestor/app.go#L19-L22)
 
 ```go
 type SourceConnector interface {
@@ -365,28 +377,27 @@ Package fsbroker implements a lightweight, filesystem\-backed message broker for
 
 ## Index
 
-- [Constants](<#constants>)
-- [func ensureDataDirExists\(\) error](<#ensureDataDirExists>)
-- [type Broker](<#Broker>)
-  - [func NewBroker\(port int\) \*Broker](<#NewBroker>)
-  - [func \(b \*Broker\) Host\(\) string](<#Broker.Host>)
-  - [func \(b \*Broker\) On\(\) bool](<#Broker.On>)
-  - [func \(b \*Broker\) Start\(\) error](<#Broker.Start>)
-  - [func \(b \*Broker\) Stop\(\)](<#Broker.Stop>)
-  - [func \(b \*Broker\) broadcastMessages\(\)](<#Broker.broadcastMessages>)
-  - [func \(b \*Broker\) handleConnection\(conn \*net.Conn\)](<#Broker.handleConnection>)
-  - [func \(b \*Broker\) handleSinkConnector\(reader \*bufio.Reader, topic string\)](<#Broker.handleSinkConnector>)
-  - [func \(b \*Broker\) handleSourceConnector\(conn \*net.Conn, topic string\)](<#Broker.handleSourceConnector>)
-- [type SinkConnector](<#SinkConnector>)
-  - [func NewSinkConnector\(broker string\) \*SinkConnector](<#NewSinkConnector>)
-  - [func \(p \*SinkConnector\) Close\(\)](<#SinkConnector.Close>)
-  - [func \(p \*SinkConnector\) Connect\(topic string\) error](<#SinkConnector.Connect>)
-  - [func \(p \*SinkConnector\) Write\(topic string, msg \[\]byte\) error](<#SinkConnector.Write>)
-- [type SourceConnector](<#SourceConnector>)
-  - [func NewSourceConnector\(broker string\) \*SourceConnector](<#NewSourceConnector>)
-  - [func \(c \*SourceConnector\) Close\(\)](<#SourceConnector.Close>)
-  - [func \(c \*SourceConnector\) Read\(topic string, handler func\(topic string, msg \[\]byte\)\) error](<#SourceConnector.Read>)
-
+- [Constants](#constants)
+- [func ensureDataDirExists\(\) error](#ensureDataDirExists)
+- [type Broker](#Broker)
+  - [func NewBroker\(port int\) \*Broker](#NewBroker)
+  - [func \(b \*Broker\) Host\(\) string](#Broker.Host)
+  - [func \(b \*Broker\) On\(\) bool](#Broker.On)
+  - [func \(b \*Broker\) Start\(\) error](#Broker.Start)
+  - [func \(b \*Broker\) Stop\(\)](#Broker.Stop)
+  - [func \(b \*Broker\) broadcastMessages\(\)](#Broker.broadcastMessages)
+  - [func \(b \*Broker\) handleConnection\(conn \*net.Conn\)](#Broker.handleConnection)
+  - [func \(b \*Broker\) handleSinkConnector\(reader \*bufio.Reader, topic string\)](#Broker.handleSinkConnector)
+  - [func \(b \*Broker\) handleSourceConnector\(conn \*net.Conn, topic string\)](#Broker.handleSourceConnector)
+- [type SinkConnector](#SinkConnector)
+  - [func NewSinkConnector\(broker string\) \*SinkConnector](#NewSinkConnector)
+  - [func \(p \*SinkConnector\) Close\(\)](#SinkConnector.Close)
+  - [func \(p \*SinkConnector\) Connect\(topic string\) error](#SinkConnector.Connect)
+  - [func \(p \*SinkConnector\) Write\(topic string, msg \[\]byte\) error](#SinkConnector.Write)
+- [type SourceConnector](#SourceConnector)
+  - [func NewSourceConnector\(broker string\) \*SourceConnector](#NewSourceConnector)
+  - [func \(c \*SourceConnector\) Close\(\)](#SourceConnector.Close)
+  - [func \(c \*SourceConnector\) Read\(topic string, handler func\(topic string, msg \[\]byte\)\) error](#SourceConnector.Read)
 
 ## Constants
 
@@ -399,16 +410,16 @@ const (
 ```
 
 <a name="ensureDataDirExists"></a>
-## func [ensureDataDirExists](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L192>)
+
+## func [ensureDataDirExists](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L192)
 
 ```go
 func ensureDataDirExists() error
 ```
 
-
-
 <a name="Broker"></a>
-## type [Broker](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L24-L33>)
+
+## type [Broker](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L24-L33)
 
 Broker is a local TCP server that simulates a pub/sub broker. It stores messages per topic as files in the .data directory, and manages connected source and sink connectors.
 
@@ -426,34 +437,32 @@ type Broker struct {
 ```
 
 <a name="NewBroker"></a>
-### func [NewBroker](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L35>)
+
+### func [NewBroker](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L35)
 
 ```go
 func NewBroker(port int) *Broker
 ```
 
-
-
 <a name="Broker.Host"></a>
-### func \(\*Broker\) [Host](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L85>)
+
+### func \(\*Broker\) [Host](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L85)
 
 ```go
 func (b *Broker) Host() string
 ```
 
-
-
 <a name="Broker.On"></a>
-### func \(\*Broker\) [On](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L48>)
+
+### func \(\*Broker\) [On](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L48)
 
 ```go
 func (b *Broker) On() bool
 ```
 
-
-
 <a name="Broker.Start"></a>
-### func \(\*Broker\) [Start](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L54>)
+
+### func \(\*Broker\) [Start](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L54)
 
 ```go
 func (b *Broker) Start() error
@@ -462,16 +471,16 @@ func (b *Broker) Start() error
 Start begins accepting TCP connections from clients. It listens for both sink and source connectors and handles broadcasting.
 
 <a name="Broker.Stop"></a>
-### func \(\*Broker\) [Stop](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L79>)
+
+### func \(\*Broker\) [Stop](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L79)
 
 ```go
 func (b *Broker) Stop()
 ```
 
-
-
 <a name="Broker.broadcastMessages"></a>
-### func \(\*Broker\) [broadcastMessages](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L179>)
+
+### func \(\*Broker\) [broadcastMessages](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L179)
 
 ```go
 func (b *Broker) broadcastMessages()
@@ -480,7 +489,8 @@ func (b *Broker) broadcastMessages()
 broadcastMessages delivers new messages to all source connectors subscribed to the topic.
 
 <a name="Broker.handleConnection"></a>
-### func \(\*Broker\) [handleConnection](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L91>)
+
+### func \(\*Broker\) [handleConnection](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L91)
 
 ```go
 func (b *Broker) handleConnection(conn *net.Conn)
@@ -489,7 +499,8 @@ func (b *Broker) handleConnection(conn *net.Conn)
 handleConnection receives the initial greeting from a connector to determine whether it is a sink or source, and delegates to the appropriate handler.
 
 <a name="Broker.handleSinkConnector"></a>
-### func \(\*Broker\) [handleSinkConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L112>)
+
+### func \(\*Broker\) [handleSinkConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L112)
 
 ```go
 func (b *Broker) handleSinkConnector(reader *bufio.Reader, topic string)
@@ -498,7 +509,8 @@ func (b *Broker) handleSinkConnector(reader *bufio.Reader, topic string)
 handleSinkConnector reads messages from a sink connector and appends them to disk. It then broadcasts the message to all connected source connectors for that topic.
 
 <a name="Broker.handleSourceConnector"></a>
-### func \(\*Broker\) [handleSourceConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L149>)
+
+### func \(\*Broker\) [handleSourceConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/broker.go#L149)
 
 ```go
 func (b *Broker) handleSourceConnector(conn *net.Conn, topic string)
@@ -507,7 +519,8 @@ func (b *Broker) handleSourceConnector(conn *net.Conn, topic string)
 handleSourceConnector registers a source connector to a topic and replays existing messages. It will remain open indefinitely, receiving messages via broadcast.
 
 <a name="SinkConnector"></a>
-## type [SinkConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L15-L20>)
+
+## type [SinkConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L15-L20)
 
 SinkConnector provides an interface for writing messages to a specific topic on a filesystem\-backed broker via TCP. It includes connection caching and expiration.
 
@@ -521,7 +534,8 @@ type SinkConnector struct {
 ```
 
 <a name="NewSinkConnector"></a>
-### func [NewSinkConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L24>)
+
+### func [NewSinkConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L24)
 
 ```go
 func NewSinkConnector(broker string) *SinkConnector
@@ -530,16 +544,16 @@ func NewSinkConnector(broker string) *SinkConnector
 SinkConnector manages outbound TCP connections to broker topics and publishes messages by writing to a topic\-specific stream.
 
 <a name="SinkConnector.Close"></a>
-### func \(\*SinkConnector\) [Close](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L66>)
+
+### func \(\*SinkConnector\) [Close](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L66)
 
 ```go
 func (p *SinkConnector) Close()
 ```
 
-
-
 <a name="SinkConnector.Connect"></a>
-### func \(\*SinkConnector\) [Connect](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L37>)
+
+### func \(\*SinkConnector\) [Connect](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L37)
 
 ```go
 func (p *SinkConnector) Connect(topic string) error
@@ -550,18 +564,16 @@ Connect establishes or reuses a TCP connection to the specified topic.
 Connections are cached per topic and automatically expire after 5 minutes. If a valid connection already exists, it is reused.
 
 <a name="SinkConnector.Write"></a>
-### func \(\*SinkConnector\) [Write](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L76>)
+
+### func \(\*SinkConnector\) [Write](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/sink_connector.go#L76)
 
 ```go
 func (p *SinkConnector) Write(topic string, msg []byte) error
 ```
 
-
-
 <a name="SourceConnector"></a>
-## type [SourceConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L11-L14>)
 
-
+## type [SourceConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L11-L14)
 
 ```go
 type SourceConnector struct {
@@ -571,25 +583,24 @@ type SourceConnector struct {
 ```
 
 <a name="NewSourceConnector"></a>
-### func [NewSourceConnector](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L16>)
+
+### func [NewSourceConnector](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L16)
 
 ```go
 func NewSourceConnector(broker string) *SourceConnector
 ```
 
-
-
 <a name="SourceConnector.Close"></a>
-### func \(\*SourceConnector\) [Close](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L51>)
+
+### func \(\*SourceConnector\) [Close](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L51)
 
 ```go
 func (c *SourceConnector) Close()
 ```
 
-
-
 <a name="SourceConnector.Read"></a>
-### func \(\*SourceConnector\) [Read](<https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L27>)
+
+### func \(\*SourceConnector\) [Read](https://github.com/goriok/pulses/blob/main/internal/broker/fsbroker/source_connector.go#L27)
 
 ```go
 func (c *SourceConnector) Read(topic string, handler func(topic string, msg []byte)) error
@@ -607,13 +618,11 @@ import "goriok/pulses/internal/models"
 
 ## Index
 
-- [type Pulse](<#Pulse>)
-
+- [type Pulse](#Pulse)
 
 <a name="Pulse"></a>
-## type [Pulse](<https://github.com/goriok/pulses/blob/main/internal/models/pulse.go#L3-L8>)
 
-
+## type [Pulse](https://github.com/goriok/pulses/blob/main/internal/models/pulse.go#L3-L8)
 
 ```go
 type Pulse struct {
@@ -636,18 +645,16 @@ It wires together connectors, sinks, and aggregation engines to produce grouped 
 
 ## Index
 
-- [type Options](<#Options>)
-- [type Pipeline](<#Pipeline>)
-  - [func NewPipeline\(\) \*Pipeline](<#NewPipeline>)
-  - [func \(p \*Pipeline\) Start\(opts \*Options\) error](<#Pipeline.Start>)
-- [type SinkConnector](<#SinkConnector>)
-- [type SourceConnector](<#SourceConnector>)
-
+- [type Options](#Options)
+- [type Pipeline](#Pipeline)
+  - [func NewPipeline\(\) \*Pipeline](#NewPipeline)
+  - [func \(p \*Pipeline\) Start\(opts \*Options\) error](#Pipeline.Start)
+- [type SinkConnector](#SinkConnector)
+- [type SourceConnector](#SourceConnector)
 
 <a name="Options"></a>
-## type [Options](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L30-L34>)
 
-
+## type [Options](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L30-L34)
 
 ```go
 type Options struct {
@@ -658,38 +665,36 @@ type Options struct {
 ```
 
 <a name="Pipeline"></a>
-## type [Pipeline](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L36>)
 
-
+## type [Pipeline](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L36)
 
 ```go
 type Pipeline struct{}
 ```
 
 <a name="NewPipeline"></a>
-### func [NewPipeline](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L38>)
+
+### func [NewPipeline](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L38)
 
 ```go
 func NewPipeline() *Pipeline
 ```
 
-
-
 <a name="Pipeline.Start"></a>
-### func \(\*Pipeline\) [Start](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L48>)
+
+### func \(\*Pipeline\) [Start](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L48)
 
 ```go
 func (p *Pipeline) Start(opts *Options) error
 ```
 
-Start launches the pipeline with the provided options. It reads from the source topic, emits grouped events per tenant, and applies a memory\-based aggregation for each \(tenant\_id, product\_sku\) pair.
+Start launches the pipeline with the provided options. It reads from the source topic, emits grouped events per tenant, and applies a memory\-based aggregation for each \(tenant_id, product_sku\) pair.
 
 Grouped messages are enriched with object IDs and timestamps, and both grouped and aggregated results are written to the appropriate sinks.
 
 <a name="SinkConnector"></a>
-## type [SinkConnector](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L25-L28>)
 
-
+## type [SinkConnector](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L25-L28)
 
 ```go
 type SinkConnector interface {
@@ -699,9 +704,8 @@ type SinkConnector interface {
 ```
 
 <a name="SourceConnector"></a>
-## type [SourceConnector](<https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L21-L23>)
 
-
+## type [SourceConnector](https://github.com/goriok/pulses/blob/main/internal/stream/pipeline.go#L21-L23)
 
 ```go
 type SourceConnector interface {
@@ -717,47 +721,42 @@ import "goriok/pulses/internal/stream/aggregators"
 
 ## Index
 
-- [func TenantSKUAmount\(event any\) float64](<#TenantSKUAmount>)
-- [func TenantSKUInfo\(key, window string, total float64\) \(map\[string\]any, string, error\)](<#TenantSKUInfo>)
-- [func TenantSKUKey\(event any\) string](<#TenantSKUKey>)
-- [func parseTenantSKUKey\(key string\) \(\*models.Pulse, error\)](<#parseTenantSKUKey>)
-
+- [func TenantSKUAmount\(event any\) float64](#TenantSKUAmount)
+- [func TenantSKUInfo\(key, window string, total float64\) \(map\[string\]any, string, error\)](#TenantSKUInfo)
+- [func TenantSKUKey\(event any\) string](#TenantSKUKey)
+- [func parseTenantSKUKey\(key string\) \(\*models.Pulse, error\)](#parseTenantSKUKey)
 
 <a name="TenantSKUAmount"></a>
-## func [TenantSKUAmount](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L37>)
+
+## func [TenantSKUAmount](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L37)
 
 ```go
 func TenantSKUAmount(event any) float64
 ```
 
-
-
 <a name="TenantSKUInfo"></a>
-## func [TenantSKUInfo](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L10>)
+
+## func [TenantSKUInfo](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L10)
 
 ```go
 func TenantSKUInfo(key, window string, total float64) (map[string]any, string, error)
 ```
 
-
-
 <a name="TenantSKUKey"></a>
-## func [TenantSKUKey](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L29>)
+
+## func [TenantSKUKey](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L29)
 
 ```go
 func TenantSKUKey(event any) string
 ```
 
-
-
 <a name="parseTenantSKUKey"></a>
-## func [parseTenantSKUKey](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L45>)
+
+## func [parseTenantSKUKey](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/tenant_sku_amount.go#L45)
 
 ```go
 func parseTenantSKUKey(key string) (*models.Pulse, error)
 ```
-
-
 
 # engines
 
@@ -771,21 +770,19 @@ This file defines an in\-memory implementation used for aggregating data within 
 
 ## Index
 
-- [type AggregationEntry](<#AggregationEntry>)
-- [type AmountFunc](<#AmountFunc>)
-- [type KeyFunc](<#KeyFunc>)
-- [type MemoryAggregator](<#MemoryAggregator>)
-  - [func NewMemoryAggregator\(keyFn KeyFunc, amountFn AmountFunc, sinkDataFn SinkDataFunc, sink Sink\) \*MemoryAggregator](<#NewMemoryAggregator>)
-  - [func \(a \*MemoryAggregator\) Add\(event any\)](<#MemoryAggregator.Add>)
-  - [func \(a \*MemoryAggregator\) run\(\)](<#MemoryAggregator.run>)
-- [type Sink](<#Sink>)
-- [type SinkDataFunc](<#SinkDataFunc>)
-
+- [type AggregationEntry](#AggregationEntry)
+- [type AmountFunc](#AmountFunc)
+- [type KeyFunc](#KeyFunc)
+- [type MemoryAggregator](#MemoryAggregator)
+  - [func NewMemoryAggregator\(keyFn KeyFunc, amountFn AmountFunc, sinkDataFn SinkDataFunc, sink Sink\) \*MemoryAggregator](#NewMemoryAggregator)
+  - [func \(a \*MemoryAggregator\) Add\(event any\)](#MemoryAggregator.Add)
+  - [func \(a \*MemoryAggregator\) run\(\)](#MemoryAggregator.run)
+- [type Sink](#Sink)
+- [type SinkDataFunc](#SinkDataFunc)
 
 <a name="AggregationEntry"></a>
-## type [AggregationEntry](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L16-L21>)
 
-
+## type [AggregationEntry](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L16-L21)
 
 ```go
 type AggregationEntry struct {
@@ -797,7 +794,8 @@ type AggregationEntry struct {
 ```
 
 <a name="AmountFunc"></a>
-## type [AmountFunc](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L35>)
+
+## type [AmountFunc](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L35)
 
 AmountFunc defines a function that extracts the amount from a generic event.
 
@@ -806,7 +804,8 @@ type AmountFunc func(event any) float64
 ```
 
 <a name="KeyFunc"></a>
-## type [KeyFunc](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L29>)
+
+## type [KeyFunc](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L29)
 
 KeyFunc defines a function that generates a string key from a generic event.
 
@@ -815,7 +814,8 @@ type KeyFunc func(event any) string
 ```
 
 <a name="MemoryAggregator"></a>
-## type [MemoryAggregator](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L39-L47>)
+
+## type [MemoryAggregator](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L39-L47)
 
 MemoryAggregator aggregates generic events in memory by a dynamic key. It flushes the results every flushEvery arg seconds to the provided Sink.
 
@@ -832,7 +832,8 @@ type MemoryAggregator struct {
 ```
 
 <a name="NewMemoryAggregator"></a>
-### func [NewMemoryAggregator](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L51>)
+
+### func [NewMemoryAggregator](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L51)
 
 ```go
 func NewMemoryAggregator(keyFn KeyFunc, amountFn AmountFunc, sinkDataFn SinkDataFunc, sink Sink) *MemoryAggregator
@@ -841,7 +842,8 @@ func NewMemoryAggregator(keyFn KeyFunc, amountFn AmountFunc, sinkDataFn SinkData
 NewMemoryAggregator creates a new in\-memory aggregator that emits aggregates grouped by a caller\-defined key every 30s.
 
 <a name="MemoryAggregator.Add"></a>
-### func \(\*MemoryAggregator\) [Add](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L65>)
+
+### func \(\*MemoryAggregator\) [Add](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L65)
 
 ```go
 func (a *MemoryAggregator) Add(event any)
@@ -850,7 +852,8 @@ func (a *MemoryAggregator) Add(event any)
 Add processes a new event and updates the in\-memory buffer.
 
 <a name="MemoryAggregator.run"></a>
-### func \(\*MemoryAggregator\) [run](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L82>)
+
+### func \(\*MemoryAggregator\) [run](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L82)
 
 ```go
 func (a *MemoryAggregator) run()
@@ -859,7 +862,8 @@ func (a *MemoryAggregator) run()
 run executes the aggregation flushing loop. It periodically drains the current buffer and sends the results to the sink.
 
 <a name="Sink"></a>
-## type [Sink](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L24-L26>)
+
+## type [Sink](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L24-L26)
 
 Sink defines an output destination for aggregated results \(e.g. a stream topic\).
 
@@ -870,7 +874,8 @@ type Sink interface {
 ```
 
 <a name="SinkDataFunc"></a>
-## type [SinkDataFunc](<https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L32>)
+
+## type [SinkDataFunc](https://github.com/goriok/pulses/blob/main/internal/stream/aggregators/engines/memory.go#L32)
 
 SinkTopicSuffixFunc defines a function that generates a topic suffix for the sink.
 
@@ -886,16 +891,14 @@ import "goriok/pulses/internal/stream/sinks"
 
 ## Index
 
-- [type SinkConnector](<#SinkConnector>)
-- [type StreamSink](<#StreamSink>)
-  - [func NewStreamSink\(p SinkConnector\) \*StreamSink](<#NewStreamSink>)
-  - [func \(s \*StreamSink\) Write\(topic string, data \[\]byte\) error](<#StreamSink.Write>)
-
+- [type SinkConnector](#SinkConnector)
+- [type StreamSink](#StreamSink)
+  - [func NewStreamSink\(p SinkConnector\) \*StreamSink](#NewStreamSink)
+  - [func \(s \*StreamSink\) Write\(topic string, data \[\]byte\) error](#StreamSink.Write)
 
 <a name="SinkConnector"></a>
-## type [SinkConnector](<https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L3-L6>)
 
-
+## type [SinkConnector](https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L3-L6)
 
 ```go
 type SinkConnector interface {
@@ -905,9 +908,8 @@ type SinkConnector interface {
 ```
 
 <a name="StreamSink"></a>
-## type [StreamSink](<https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L8-L10>)
 
-
+## type [StreamSink](https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L8-L10)
 
 ```go
 type StreamSink struct {
@@ -916,22 +918,20 @@ type StreamSink struct {
 ```
 
 <a name="NewStreamSink"></a>
-### func [NewStreamSink](<https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L12>)
+
+### func [NewStreamSink](https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L12)
 
 ```go
 func NewStreamSink(p SinkConnector) *StreamSink
 ```
 
-
-
 <a name="StreamSink.Write"></a>
-### func \(\*StreamSink\) [Write](<https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L16>)
+
+### func \(\*StreamSink\) [Write](https://github.com/goriok/pulses/blob/main/internal/stream/sinks/stream.go#L16)
 
 ```go
 func (s *StreamSink) Write(topic string, data []byte) error
 ```
-
-
 
 Generated by [gomarkdoc](https://github.com/princjef/gomarkdoc)
 

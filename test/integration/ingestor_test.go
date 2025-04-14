@@ -129,7 +129,7 @@ func Test_integration_ingestor_aggregation_output(t *testing.T) {
 		}
 
 		t.Logf("Test passed: Received expected aggregated message: %+v", data)
-	case <-time.After(35 * time.Second): // must match flush timer + margin
+	case <-time.After(5 * time.Second): // must match flush timer + margin
 		t.Fatal("Test failed: Timeout waiting for aggregated message")
 	}
 }
@@ -155,6 +155,7 @@ func publish(topic string, msgs []*models.Pulse) error {
 	}
 
 	for _, msg := range msgs {
+		time.Sleep(time.Millisecond * 100)
 		msg, err := json.Marshal(msg)
 		if err != nil {
 			return err
@@ -166,12 +167,4 @@ func publish(topic string, msgs []*models.Pulse) error {
 	}
 
 	return nil
-}
-
-func testSinkConsumer(tenant string, sinkChan chan []byte) {
-	sinkTopic := fmt.Sprintf("tenant.%s.pulses", tenant)
-	testOutboundConsumer := fsbroker.NewSourceConnector(brokerHost)
-	testOutboundConsumer.Read(sinkTopic, func(topic string, message []byte) {
-		sinkChan <- message
-	})
 }

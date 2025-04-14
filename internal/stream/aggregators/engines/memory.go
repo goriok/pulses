@@ -53,7 +53,7 @@ func NewMemoryAggregator(keyFn KeyFunc, amountFn AmountFunc, sinkDataFn SinkData
 		keyFn:      keyFn,
 		amountFn:   amountFn,
 		buffer:     make(map[string]*AggregationEntry),
-		flushEvery: 10 * time.Second,
+		flushEvery: 5 * time.Second,
 		sink:       sink,
 		sincDataFn: sinkDataFn,
 	}
