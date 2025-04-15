@@ -54,6 +54,19 @@ flowchart TD
     Processor -->|Monthly Reports| Catalog
 ```
 
+<details> <summary><strong> Accessible Description: System Context C4 Model Diagram</strong></summary>
+
+    Cloud Systems generate usage pulses and send them to the Ingestor.
+
+    The Ingestor aggregates the pulses and forwards them to the Usage Processor & Storage.
+
+    The Processor converts the data into billed usage, which is exposed through the Query API.
+
+    The Frontend Dashboard queries the Query API to fetch usage data for customers.
+
+    The Processor also produces Monthly Reports sent to the Contracts & Catalog, which manages usage plans and contractual logic.
+</details>
+
 ### Data Flow
 
 ```mermaid
@@ -80,6 +93,20 @@ flowchart TD
     Pipeline --> SinkTopic
     Pipeline --> SinkTopic2
 ```
+<details> <summary><strong>Accessible Description: Ingestor Pipeline Flow</strong></summary>
+
+    A Pulse Generator (like a stub, file system, or Kafka source) produces usage pulses and publishes them to the topic source.pulses.
+
+    The Ingestor Pipeline reads from this source topic.
+
+    It processes the incoming data and writes results to two output topics:
+
+        tenant.aggregated.pulses.amount: used for consumption by the Processor & Storage.
+
+        tenant.grouped.pulses: for other use cases (e.g., grouping or analytics).
+
+    The Processor periodically consumes data from the aggregated.pulses.amount topic for billing and storage.
+</details>
 
 ## Project Structure
 
