@@ -141,6 +141,12 @@ go run ./cmd/ingestor \
   --stub-clean
 ```
 
+## NotebookLM
+
+NotebookLM was used to make the information more acessible and to generate the documentation.
+
+Link: https://notebooklm.google.com/notebook/5d30eed7-0819-4a95-a500-62809cb30cb7
+
 ## Documentation
 
 We use [gomarkdoc](https://github.com/princjef/gomarkdoc) to generate and embed Go documentation directly into this README. The documentation includes both exported and unexported symbols for comprehensive coverage.
