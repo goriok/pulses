@@ -41,8 +41,6 @@ func main() {
 			)
 		}()
 	}
-
-	time.Sleep(1 * time.Second)
 	if err := app.Start(); err != nil {
 		log.Fatalf("app failed: %v", err)
 	}

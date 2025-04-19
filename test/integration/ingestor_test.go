@@ -148,8 +148,8 @@ func startBroker() {
 }
 
 func publish(topic string, msgs []*models.Pulse) error {
-	producer := fsbroker.NewSinkConnector(brokerHost)
-	err := producer.Connect(topic)
+	sinkConnector := fsbroker.NewSinkConnector(brokerHost)
+	err := sinkConnector.Connect(topic)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func publish(topic string, msgs []*models.Pulse) error {
 		if err != nil {
 			return err
 		}
-		err = producer.Write(topic, msg)
+		err = sinkConnector.Write(topic, msg)
 		if err != nil {
 			return nil
 		}
